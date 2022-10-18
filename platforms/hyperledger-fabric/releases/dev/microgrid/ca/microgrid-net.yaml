@@ -1,0 +1,50 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: microgrid-net-ca
+  namespace: microgrid-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: microgrid-net-ca
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-dev
+        namespace: flux-dev
+      chart: platforms/hyperledger-fabric/charts/ca    
+  values:
+    metadata:
+      namespace: microgrid-net
+      images:
+        alpineutils: ghcr.io/hyperledger/alpine-utils:1.0
+        ca: hyperledger/fabric-ca:1.4.4
+    server:
+      name: ca
+      tlsstatus: true
+      admin: microgrid-admin
+        
+    storage:
+      storageclassname: microgridsc
+      storagesize: 512Mi 
+    vault:
+      role: vault-role
+      address: http://vault.icnmicrogrid.net:8080
+      authpath: devmicrogrid-net-auth
+      secretcert: secretsv2/data/crypto/ordererOrganizations/microgrid-net/ca?ca.microgrid-net-cert.pem
+      secretkey: secretsv2/data/crypto/ordererOrganizations/microgrid-net/ca?microgrid-net-CA.key
+      secretadminpass: secretsv2/data/credentials/microgrid-net/ca/microgrid?user
+      serviceaccountname: vault-auth
+      imagesecretname: regcred
+    service:
+      servicetype: ClusterIP
+      ports:
+        tcp:
+          port: 7054
+    proxy:
+      provider: haproxy
+      type: orderer
+      external_url_suffix: fabric.icnmicrogrid.net
