@@ -1,0 +1,38 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: microgrid-vaultkubenertes-job
+  namespace: microgrid-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: microgrid-vaultkubenertes-job
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-dev
+        namespace: flux-dev
+      chart: platforms/hyperledger-fabric/charts/vault_kubernetes
+  values:
+    metadata:
+      name: microgrid
+      component_type: orderer
+      namespace: microgrid-net    
+      images:
+        alpineutils: ghcr.io/hyperledger/alpine-utils:1.0
+
+    vault:
+      reviewer_service: vault-reviewer
+      role: vault-role
+      address: http://vault.icnmicrogrid.net:8080
+      authpath: devmicrogrid-net-auth
+      policy: vault-crypto-orderer-microgrid-net-ro
+      secret_path: secretsv2
+      serviceaccountname: vault-auth
+      imagesecretname: regcred
+    
+    k8s:
+      kubernetes_url: https://60CC4D29305B78548B9715B60ECB8259.yl4.eu-central-1.eks.amazonaws.com
