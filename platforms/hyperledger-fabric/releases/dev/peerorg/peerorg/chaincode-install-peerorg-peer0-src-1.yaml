@@ -54,4 +54,4 @@ spec:
         url: https://github.com/prabhatpathania/acn_microgrid.git
         branch: main
         path: workspace/
-      endorsementpolicies:  ''
+      endorsementpolicies: ''
