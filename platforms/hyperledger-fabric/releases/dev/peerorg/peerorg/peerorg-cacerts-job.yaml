@@ -1,0 +1,38 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: peerorg-cacerts-job
+  namespace: peerorg-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: peerorg-cacerts-job
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-dev
+        namespace: flux-dev
+      chart: platforms/hyperledger-fabric/charts/generate_cacerts
+  values:
+    metadata:
+      name: peerorg
+      component_name: peerorg-net
+      namespace: peerorg-net    
+      images:
+        fabrictools: hyperledger/fabric-tools:1.4.8
+        alpineutils: ghcr.io/hyperledger/alpine-utils:1.0
+
+    vault:
+      role: vault-role
+      address: http://vault.icnmicrogrid.net:8080
+      authpath: devpeerorg-net-auth
+      secretcryptoprefix: secretsv2/data/crypto/peerOrganizations/peerorg-net/ca
+      secretcredentialsprefix: secretsv2/data/credentials/peerorg-net/ca/peerorg
+      serviceaccountname: vault-auth
+      imagesecretname: regcred
+      
+    ca:
+      subject: /C=CH/ST=Zurich/L=Zurich/O=Manufacturer/CN=ca.peerorg-net.fabric.icnmicrogrid.net
