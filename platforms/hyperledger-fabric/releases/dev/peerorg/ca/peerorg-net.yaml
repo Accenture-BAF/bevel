@@ -1,0 +1,51 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: peerorg-net-ca
+  namespace: peerorg-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: peerorg-net-ca
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-dev
+        namespace: flux-dev
+      chart: platforms/hyperledger-fabric/charts/ca    
+  values:
+    metadata:
+      namespace: peerorg-net
+      images:
+        alpineutils: ghcr.io/hyperledger/alpine-utils:1.0
+        ca: hyperledger/fabric-ca:1.4.4
+ 
+    server:
+      name: ca
+      tlsstatus: true
+      admin: peerorg-admin 
+  
+    storage:
+      storageclassname: peerorgsc
+      storagesize: 512Mi
+    vault:
+      role: vault-role
+      address: http://vault.icnmicrogrid.net:8080
+      authpath: devpeerorg-net-auth
+      secretcert: secretsv2/data/crypto/peerOrganizations/peerorg-net/ca?ca.peerorg-net-cert.pem
+      secretkey: secretsv2/data/crypto/peerOrganizations/peerorg-net/ca?peerorg-net-CA.key
+      secretadminpass: secretsv2/data/credentials/peerorg-net/ca/peerorg?user
+      serviceaccountname: vault-auth
+      imagesecretname: regcred
+    service:
+      servicetype: ClusterIP
+      ports:
+        tcp:
+          port: 7054
+    proxy:
+      provider: haproxy
+      type: peer
+      external_url_suffix: fabric.icnmicrogrid.net
