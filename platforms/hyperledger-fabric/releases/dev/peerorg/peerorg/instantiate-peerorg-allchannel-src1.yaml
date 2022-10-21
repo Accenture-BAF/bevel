@@ -1,0 +1,50 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: instantiate-peerorg-allchannel-src1
+  namespace: peerorg-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: instantiate-peerorg-allchannel-src1
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-dev
+        namespace: flux-dev
+      chart: platforms/hyperledger-fabric/charts/instantiate_chaincode
+  values:
+    metadata:
+      namespace: peerorg-net
+      images:
+        fabrictools: hyperledger/fabric-tools:1.4.8
+        alpineutils: ghcr.io/hyperledger/alpine-utils:1.0
+    peer:
+      name: peer0
+      address: peer0.peerorg-net:7051
+      localmspid: peerorgMSP
+      loglevel: debug
+      tlsstatus: true
+    vault:
+      role: vault-role
+      address: http://vault.icnmicrogrid.net:8080
+      authpath: devpeerorg-net-auth
+      adminsecretprefix: secretsv2/data/crypto/peerOrganizations/peerorg-net/users/admin 
+      orderersecretprefix: secretsv2/data/crypto/peerOrganizations/peerorg-net/orderer
+      serviceaccountname: vault-auth
+      imagesecretname: regcred
+      tls: false
+    orderer:
+      address: orderer1.fabric.icnmicrogrid.net:8443
+    chaincode:
+      builder: hyperledger/fabric-ccenv:1.4.8
+      name: src
+      lang: golang
+      version: 1
+      instantiationarguments: '\"init\",\"\"'
+      endorsementpolicies:  ''
+    channel:
+      name: allchannel
