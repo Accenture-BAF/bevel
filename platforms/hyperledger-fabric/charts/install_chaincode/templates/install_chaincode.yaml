@@ -169,7 +169,13 @@ spec:
           apk add curl openssh
           ssh-keyscan {{ $.Values.chaincode.repository.hostname }} > /root/.ssh/known_hosts
           git_password=$(cat /opt/gopath/src/github.com/hyperledger/fabric/crypto/user_cred)
-          tail -f /dev/null
+
+          # Upgrade Go version because microgrid needs version 1.18
+          rm -rf /opt/go
+          wget https://go.dev/dl/go1.18.7.linux-amd64.tar.gz
+          tar -C /opt -xzf go1.18.7.linux-amd64.tar.gz
+          go version
+          
           cd /tmp && git clone https://{{ $.Values.chaincode.repository.git_username }}:$git_password@{{ $.Values.chaincode.repository.url }} -b {{ $.Values.chaincode.repository.branch }} chaincode > git.log 2>&1
           ## Check if the repository was cloned correctly
           if [[ ! $? -eq 0 ]];
@@ -195,6 +201,7 @@ spec:
             if ! [ -d "vendor" ];then
               GO111MODULE=on go mod vendor
               CC_SRC_PATH="${PWD}"
+              cp -R chaincode $GOPATH/src/github.com/chaincode/vendor/github.com
             fi
 
           elif [ ${CC_RUNTIME_LANGUAGE} = "java" ]
@@ -335,4 +342,3 @@ spec:
         - name: certificates
           mountPath: /opt/gopath/src/github.com/hyperledger/fabric/crypto
           readOnly: true
-
